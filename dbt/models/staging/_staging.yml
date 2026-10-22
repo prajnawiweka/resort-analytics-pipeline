@@ -1,0 +1,81 @@
+version: 2
+
+models:
+  - name: stg_pms__reservations
+    description: Latest version of each PMS reservation, typed and trimmed. Times are WITA.
+    columns:
+      - name: res_no
+        description: PMS reservation number (natural key).
+        data_tests: [unique, not_null]
+      - name: property_code
+        data_tests:
+          - not_null
+          - relationships: {to: ref('properties'), field: property_code}
+      - name: room_type_code
+        data_tests:
+          - relationships: {to: ref('room_types'), field: room_type_code}
+      - name: channel_code
+        description: PMS source code after trimming stray spaces.
+        data_tests:
+          - not_null
+          - relationships: {to: ref('channels'), field: channel_code}
+      - name: guest_email
+        description: Lower-cased; the guest's identity across reservations.
+        data_tests: [not_null]
+      - name: guest_country_code
+        data_tests:
+          - relationships: {to: ref('countries'), field: country_code}
+      - name: pms_status
+        data_tests:
+          - accepted_values: {arguments: {values: ['RESERVED', 'CANCELLED']}}
+
+  - name: stg_pms__night_audit
+    description: Rooms and revenue per property per day from the PMS night audit.
+    data_tests:
+      - dbt_utils_free_unique_combination:
+          columns: [audit_date, property_code]
+    columns:
+      - name: property_code
+        data_tests:
+          - not_null
+          - relationships: {to: ref('properties'), field: property_code}
+
+  - name: stg_ota__bookings
+    description: Latest version of each OTA booking with company channel and property ids.
+    columns:
+      - name: ota_ref
+        data_tests: [unique, not_null]
+      - name: channel_id
+        description: Null means the channel manager sent a spelling missing from channel_name_map.
+        data_tests: [not_null]
+      - name: property_id
+        description: Null means the channel manager sent a property name missing from property_name_map.
+        data_tests: [not_null]
+
+  - name: stg_reviews
+    description: Reviews on a common 1-5 scale with company property ids.
+    columns:
+      - name: review_id
+        data_tests: [unique, not_null]
+      - name: property_id
+        data_tests: [not_null]
+      - name: overall_rating
+        data_tests: [not_null]
+      - name: platform
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['Booking.com', 'Google Reviews', 'TripAdvisor', 'Post-stay Survey']
+
+  - name: stg_finance__targets
+    description: Monthly revenue and occupancy targets per property, unpivoted from the finance workbook.
+    data_tests:
+      - dbt_utils_free_unique_combination:
+          columns: [property_id, target_month]
+    columns:
+      - name: property_id
+        data_tests: [not_null]
+      - name: revenue_target
+        data_tests: [not_null]
+      - name: occupancy_target
+        data_tests: [not_null]

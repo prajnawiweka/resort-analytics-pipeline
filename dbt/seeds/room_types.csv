@@ -1,0 +1,17 @@
+room_type_id,property_id,room_type_code,room_category,base_rate,max_occupancy,room_count
+1,1,UBD-GV,Garden Villa,180,2,20
+2,1,UBD-PV,Pool Villa,280,2,15
+3,1,UBD-RFS,Rice Field Suite,380,4,10
+4,2,SMY-OVR,Ocean View Room,220,2,30
+5,2,SMY-BFS,Beachfront Suite,320,4,25
+6,2,SMY-PRV,Presidential Villa,420,6,23
+7,3,CGU-SB,Surf Bungalow,250,2,15
+8,3,CGU-WRS,Wave Rider Suite,350,4,12
+9,3,CGU-OL,Ocean Loft,450,6,5
+10,4,SNR-FR,Family Room,190,4,15
+11,4,SNR-GS,Garden Suite,290,2,15
+12,4,SNR-FV,Family Villa,390,6,5
+13,5,NSD-DLX,Deluxe Room,200,2,15
+14,5,NSD-PRS,Premium Suite,300,2,15
+15,5,NSD-RV,Royal Villa,400,4,10
+16,4,SNR-STD,Standard Room,210,2,20

@@ -1,0 +1,162 @@
+version: 2
+
+models:
+  - name: data_freshness
+    description: One row with the last business date that has complete data (night audit).
+    columns:
+      - name: data_as_of
+        data_tests: [not_null]
+
+  - name: dim_date
+    description: Calendar 2024-12-01 to 2027-12-31 with Bali seasons.
+    columns:
+      - name: date_day
+        data_tests: [unique, not_null]
+      - name: season
+        data_tests:
+          - accepted_values: {arguments: {values: ['High', 'Shoulder', 'Low']}}
+
+  - name: dim_property
+    description: The five resorts.
+    columns:
+      - name: property_id
+        data_tests: [unique, not_null]
+
+  - name: dim_room_type
+    columns:
+      - name: room_type_id
+        data_tests: [unique, not_null]
+      - name: property_id
+        data_tests:
+          - relationships: {to: ref('dim_property'), field: property_id}
+
+  - name: dim_channel
+    columns:
+      - name: channel_id
+        data_tests: [unique, not_null]
+      - name: channel_type
+        data_tests:
+          - accepted_values:
+              arguments: {values: ['Direct', 'OTA', 'Paid', 'Social', 'Agent']}
+
+  - name: dim_guest
+    description: >
+      One row per guest, identified by lower-cased e-mail. Segment: VIP = 3+ stays or
+      USD 6,000+ lifetime spend; Returning = 2 stays; New = otherwise.
+    columns:
+      - name: guest_key
+        description: md5 of the lower-cased e-mail, so the address itself is not needed downstream.
+        data_tests: [unique, not_null]
+      - name: guest_segment
+        data_tests:
+          - accepted_values: {arguments: {values: ['New', 'Returning', 'VIP']}}
+
+  - name: fact_bookings
+    description: >
+      One row per reservation (grain: res_no). booking_revenue, room_nights and commission are
+      zero for cancelled reservations. booking_status is evaluated at data_freshness.data_as_of.
+    columns:
+      - name: res_no
+        data_tests: [unique, not_null]
+      - name: property_id
+        data_tests:
+          - not_null
+          - relationships: {to: ref('dim_property'), field: property_id}
+      - name: room_type_id
+        data_tests:
+          - not_null
+          - relationships: {to: ref('dim_room_type'), field: room_type_id}
+      - name: channel_id
+        data_tests:
+          - not_null
+          - relationships: {to: ref('dim_channel'), field: channel_id}
+      - name: guest_key
+        data_tests:
+          - not_null
+          - relationships: {to: ref('dim_guest'), field: guest_key}
+      - name: check_in_date
+        data_tests:
+          - not_null
+          - relationships: {to: ref('dim_date'), field: date_day}
+      - name: booking_status
+        data_tests:
+          - accepted_values:
+              arguments: {values: ['Cancelled', 'Completed', 'In-house', 'Upcoming']}
+      - name: lead_time_days
+        description: Days between booking (local date) and check-in. Never negative.
+      - name: commission_source
+        description: ota_report = actual amount from the channel manager; contract_rate = channel rate x amount; none = direct.
+        data_tests:
+          - accepted_values:
+              arguments: {values: ['ota_report', 'contract_rate', 'none']}
+      - name: ota_match_method
+        description: How the OTA record was linked - reservation_no, stay_attributes, or null for non-OTA bookings.
+
+  - name: fact_daily_revenue
+    description: >
+      Night audit per property per day (grain: date_day, property_id). Additive columns only:
+      occupancy = SUM(rooms_sold) / SUM(rooms_available), ADR = SUM(room_revenue) / SUM(rooms_sold),
+      RevPAR = SUM(room_revenue) / SUM(rooms_available).
+    data_tests:
+      - dbt_utils_free_unique_combination:
+          columns: [date_day, property_id]
+    columns:
+      - name: property_id
+        data_tests:
+          - relationships: {to: ref('dim_property'), field: property_id}
+      - name: date_day
+        data_tests:
+          - not_null
+          - relationships: {to: ref('dim_date'), field: date_day}
+
+  - name: fact_reviews
+    description: >
+      One row per review on a 1-5 scale (grain: review_id). res_no is filled for Post-stay
+      Survey and Booking.com reviews; Google Reviews and TripAdvisor carry no booking reference.
+    columns:
+      - name: review_id
+        data_tests: [unique, not_null]
+      - name: property_id
+        data_tests:
+          - not_null
+          - relationships: {to: ref('dim_property'), field: property_id}
+      - name: res_no
+        data_tests:
+          - relationships: {to: ref('fact_bookings'), field: res_no}
+      - name: is_low_rating
+        description: overall_rating below var low_rating_threshold (4).
+
+  - name: fact_monthly_target
+    description: "Finance targets per property per month (grain: month_start, property_id)."
+    data_tests:
+      - dbt_utils_free_unique_combination:
+          columns: [month_start, property_id]
+
+  - name: mart_revenue_vs_target
+    description: >
+      Actual vs target per property per month up to the latest data month. For the running
+      month, revenue_target_to_date pro-rates the target by days reported.
+    data_tests:
+      - dbt_utils_free_unique_combination:
+          columns: [month_start, property_id]
+
+  - name: mart_property_monthly
+    description: >
+      The KPI table: every dashboard metric per property per month, with last-year comparison.
+      Stay KPIs by stay date, booking KPIs by check-in month, review KPIs by review month.
+    data_tests:
+      - dbt_utils_free_unique_combination:
+          columns: [month_start, property_id]
+    columns:
+      - name: occupancy_rate
+        description: rooms_sold / rooms_available.
+      - name: adr
+        description: Average daily rate = room_revenue / rooms_sold.
+      - name: revpar
+        description: Revenue per available room = room_revenue / rooms_available.
+      - name: cancellation_rate
+        description: cancellations / bookings (check-in month).
+      - name: direct_booking_share
+        description: Non-cancelled direct bookings / non-cancelled bookings.
+      - name: low_rating_share
+        description: Reviews with overall rating below 4 / all reviews.
