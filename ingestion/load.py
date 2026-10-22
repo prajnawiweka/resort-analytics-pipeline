@@ -118,45 +118,58 @@ def sha256_of(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def loaded_files(conn: psycopg.Connection) -> dict[str, set[str]]:
+    """Every file that ever loaded successfully, with the checksums it loaded under.
+    Read once per run, so skipping an unchanged file costs no database round trip."""
+    loaded: dict[str, set[str]] = {}
+    for source_file, digest in conn.execute(
+        "select source_file, file_sha256 from raw.load_log where status = 'success'"
+    ):
+        loaded.setdefault(source_file, set()).add(digest)
+    return loaded
+
+
 def already_loaded(conn: psycopg.Connection, source_file: str, digest: str) -> bool:
-    row = conn.execute(
-        "select 1 from raw.load_log where source_file = %s and file_sha256 = %s"
-        " and status = 'success' limit 1",
-        (source_file, digest),
-    ).fetchone()
-    return row is not None
+    return digest in loaded_files(conn).get(source_file, set())
 
 
 def load_file(
-    conn: psycopg.Connection, feed: Feed, path: Path, business_date: date, force: bool = False
+    conn: psycopg.Connection,
+    feed: Feed,
+    path: Path,
+    business_date: date,
+    force: bool = False,
+    loaded: dict[str, set[str]] | None = None,
 ) -> Result:
+    """Load one file in one transaction. `loaded` is the result of loaded_files(); pass it
+    when loading many files to avoid one lookup per file."""
     source_file = f"{business_date.isoformat()}/{path.name}"
     digest = sha256_of(path)
-    if not force and already_loaded(conn, source_file, digest):
+    if loaded is None:
+        loaded = loaded_files(conn)
+    previous = loaded.get(source_file, set())
+    if not force and digest in previous:
         return Result(source_file, "skipped")
 
     started = datetime.now(UTC)
     try:
+        columns, rows_iter = rows_for(feed, path)
+        rows = list(rows_iter)  # parse fully first: a bad file fails before touching the db
         with conn.transaction():
             load_id = conn.execute(
                 "insert into raw.load_log (business_date, source, source_file, file_sha256,"
-                " status, started_at) values (%s, %s, %s, %s, 'success', %s) returning load_id",
-                (business_date, feed.source, source_file, digest, started),
+                " rows_loaded, status, started_at)"
+                " values (%s, %s, %s, %s, %s, 'success', %s) returning load_id",
+                (business_date, feed.source, source_file, digest, len(rows), started),
             ).fetchone()[0]
-            conn.execute(f"delete from {feed.table} where _source_file = %s", (source_file,))
-            columns, rows = rows_for(feed, path)
-            n = 0
+            if previous or force:  # only a reload has old rows to replace
+                conn.execute(f"delete from {feed.table} where _source_file = %s", (source_file,))
             cols = ", ".join([*columns, *META])
             with conn.cursor().copy(f"copy {feed.table} ({cols}) from stdin") as copy:
-                for row in rows:
-                    *values, row_number = row
+                for *values, row_number in rows:
                     copy.write_row([*values, load_id, source_file, row_number])
-                    n += 1
-            conn.execute(
-                "update raw.load_log set rows_loaded = %s, finished_at = now() where load_id = %s",
-                (n, load_id),
-            )
-        return Result(source_file, "loaded", n)
+        loaded.setdefault(source_file, set()).add(digest)
+        return Result(source_file, "loaded", len(rows))
     except (SourceFormatError, psycopg.Error, ValueError, KeyError) as exc:
         with conn.transaction():
             conn.execute(
@@ -192,8 +205,9 @@ def main(argv: list[str] | None = None) -> int:
     rows = 0
     with connect() as conn:
         conn.autocommit = True  # each file manages its own transaction
+        loaded = loaded_files(conn)
         for business_date, feed, path in discover(args.incoming, args.date):
-            res = load_file(conn, feed, path, business_date, args.force)
+            res = load_file(conn, feed, path, business_date, args.force, loaded)
             counts[res.status] += 1
             rows += res.rows
             if res.status == "failed":

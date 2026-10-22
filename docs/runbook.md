@@ -8,10 +8,10 @@ Cara menyiapkan, menjalankan, dan memperbaiki pipeline. Bagian A dikerjakan seka
 
 1. Daftar di [neon.com](https://neon.com) (free plan cukup: 1 GB per project, compute tidur otomatis setelah 5 menit tanpa aktivitas; cek ulang di [halaman pricing](https://neon.com/pricing)).
 2. **New project**: nama `resort-analytics`, region **AWS Asia Pacific (Singapore)** (terdekat dari Bali), Postgres 16, nama database `resort`.
-3. Menu **Roles** → buat dua role. Simpan password-nya di password manager, jangan di chat atau file repo:
-   - `pipeline_rw` (dipakai GitHub Actions)
-   - `looker_ro` (dipakai Looker Studio dan Power BI)
-4. Menu **SQL Editor**, sebagai owner, jalankan isi [`sql/roles/neon_setup.sql`](../sql/roles/neon_setup.sql). Script ini membuat skema milik `pipeline_rw` dan membatasi `looker_ro` hanya bisa membaca skema `marts`.
+3. Menu **SQL Editor**, pilih database `resort`, lalu salin seluruh isi [`sql/roles/neon_setup.sql`](../sql/roles/neon_setup.sql) ke editor.
+4. Di editor, ganti dua password contoh (`REPLACE-pipeline-password`, `REPLACE-looker-password`) dengan password kuat (minimal 12 karakter, campuran huruf besar, kecil, angka, simbol). Simpan keduanya di password manager, jangan di chat atau file repo. Klik **Run**.
+   - Script membuat role `pipeline_rw` dan `looker_ro` **lewat SQL**. Jangan membuatnya di menu **Roles**: role dari menu itu otomatis anggota `neon_superuser` sehingga bisa membaca semua data ([dokumentasi Neon](https://neon.com/docs/manage/database-access)).
+   - Hasil akhir yang benar: dua baris, `pipeline_rw` dan `looker_ro`, keduanya `is_neon_superuser = false`.
 5. Tombol **Connect** → matikan **Connection pooling** → catat host (tanpa `-pooler`). Pipeline memakai host langsung karena loader memakai `COPY` dalam transaksi panjang.
 
 ### A2. Secret di GitHub

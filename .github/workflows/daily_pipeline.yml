@@ -13,7 +13,8 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # A normal day takes a few minutes; the first run backfills ~2 years over a long network path
+    timeout-minutes: 90
 
     env:
       POSTGRES_HOST: ${{ secrets.NEON_HOST }}
@@ -47,31 +48,39 @@ jobs:
         if: steps.config.outputs.configured == 'true'
         run: pip install -r requirements.txt
 
+      - name: Prefer IPv4 (GitHub runners have no IPv6 route)
+        if: steps.config.outputs.configured == 'true'
+        run: echo "precedence ::ffff:0:0/96 100" | sudo tee -a /etc/gai.conf
+
+      - name: Check and clean the database host
+        if: steps.config.outputs.configured == 'true'
+        run: .github/scripts/run_step.sh host python -m ingestion.host
+
       - name: Create schemas and raw tables
         if: steps.config.outputs.configured == 'true'
-        run: python -m ingestion.init_db
+        run: .github/scripts/run_step.sh init_db python -m ingestion.init_db
 
       - name: Generate source files for every day not loaded yet
         if: steps.config.outputs.configured == 'true'
-        run: python -m ingestion.generate --catch-up
+        run: .github/scripts/run_step.sh generate python -m ingestion.generate --catch-up
 
       - name: Load into raw
         if: steps.config.outputs.configured == 'true'
-        run: python -m ingestion.load
+        run: .github/scripts/run_step.sh load python -m ingestion.load
 
       - name: Build and test with dbt
         if: steps.config.outputs.configured == 'true'
         working-directory: dbt
         run: |
-          dbt seed --profiles-dir .
-          dbt build --profiles-dir .
+          ../.github/scripts/run_step.sh dbt-seed dbt seed --profiles-dir .
+          ../.github/scripts/run_step.sh dbt-build dbt build --profiles-dir .
 
       - name: Check the marts reach yesterday
         if: steps.config.outputs.configured == 'true'
-        run: python -m ingestion.check_freshness
+        run: .github/scripts/run_step.sh freshness python -m ingestion.check_freshness
 
       - name: Write run summary
-        if: always() && steps.config.outputs.configured == 'true'
+        if: success() && steps.config.outputs.configured == 'true'
         run: |
           python - <<'EOF' >> "$GITHUB_STEP_SUMMARY"
           from ingestion.db import connect
@@ -89,7 +98,7 @@ jobs:
           EOF
 
       - name: Keep dbt results
-        if: always() && steps.config.outputs.configured == 'true'
+        if: always() && steps.config.outputs.configured == 'true' && hashFiles('dbt/target/run_results.json') != ''
         uses: actions/upload-artifact@v4
         with:
           name: dbt-run-results
