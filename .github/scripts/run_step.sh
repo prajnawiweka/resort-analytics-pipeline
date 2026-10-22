@@ -8,7 +8,7 @@ log="$(mktemp)"
 "$@" 2>&1 | tee "$log"
 status=${PIPESTATUS[0]}
 if [ "$status" -ne 0 ]; then
-  message="$(tail -n 6 "$log" | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')"
+  message="$(grep -v "^ *\(File \|\^\|raise \|attempts = \|return \)" "$log" | tail -n 14 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')"
   echo "::error title=${title} failed::${message}"
 fi
 exit "$status"
