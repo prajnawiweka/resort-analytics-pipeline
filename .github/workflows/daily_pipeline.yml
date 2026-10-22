@@ -47,6 +47,10 @@ jobs:
         if: steps.config.outputs.configured == 'true'
         run: pip install -r requirements.txt
 
+      - name: Check and clean the database host
+        if: steps.config.outputs.configured == 'true'
+        run: .github/scripts/run_step.sh host python -m ingestion.host
+
       - name: Create schemas and raw tables
         if: steps.config.outputs.configured == 'true'
         run: .github/scripts/run_step.sh init_db python -m ingestion.init_db

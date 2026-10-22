@@ -8,13 +8,15 @@ import os
 import psycopg
 from dotenv import load_dotenv
 
+from ingestion.host import normalize_host
+
 load_dotenv()
 
 
 def conninfo() -> str:
     """Build a libpq connection string from POSTGRES_* environment variables."""
     return psycopg.conninfo.make_conninfo(
-        host=os.getenv("POSTGRES_HOST", "localhost"),
+        host=normalize_host(os.getenv("POSTGRES_HOST", "localhost")),
         port=os.getenv("POSTGRES_PORT", "5432"),
         dbname=os.getenv("POSTGRES_DB", "resort"),
         user=os.getenv("POSTGRES_USER", "pipeline_rw"),
