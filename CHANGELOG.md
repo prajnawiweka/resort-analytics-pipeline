@@ -2,6 +2,16 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/). Versi mengikuti milestone project.
 
+## [0.5.0] - 2026-10-22 · M4 Automation (menunggu Neon)
+
+### Ditambahkan
+- Workflow `daily_pipeline.yml`: jadwal 06:17 WITA dan tombol manual; init, generate, load, dbt build, cek kesegaran, ringkasan run, arsip hasil dbt. Melewati diri sendiri dengan aman selama secret Neon belum diisi.
+- `generate --catch-up`: mengejar setiap tanggal bisnis sejak load terakhir sampai kemarin (waktu Bali).
+- `ingestion/check_freshness.py`: gagal bila `data_as_of` belum mencapai kemarin.
+- `sql/roles/neon_setup.sql`: skema milik `pipeline_rw`, `looker_ro` hanya bisa membaca `marts`.
+- `docs/runbook.md`: setup Neon, secret GitHub, koneksi Looker Studio, penanganan run gagal.
+- 5 tes Python untuk logika tanggal dan catch-up; keputusan #16–#17.
+
 ## [0.4.0] - 2026-10-22 · M3 Testing
 
 ### Ditambahkan

@@ -166,3 +166,25 @@ Setiap keputusan teknis penting dicatat di sini: pilihannya, alternatif yang dip
 **Alternatif:** Nama tamu sebagai kunci; atau nomor tamu dari PMS.
 
 **Alasan:** PMS simulasi tidak mengirim nomor tamu, dan nama tidak unik. Email cukup stabil, tetapi kadang terkirim dalam huruf besar, sehingga harus dinormalisasi dulu. Hash membuat tabel mart tidak perlu menyimpan email, jadi dashboard tidak pernah menampilkan data pribadi.
+
+---
+
+## 16. Run harian mengejar ketertinggalan sendiri dan gagal bila data tidak sampai kemarin
+
+**Tanggal:** 22 Okt 2026
+
+**Pilihan:** Workflow harian (06:17 WITA) membuat file mulai dari tanggal bisnis terakhir yang sukses dimuat di `raw.load_log` sampai kemarin (`generate --catch-up`), lalu memuat, membangun dbt, dan terakhir memeriksa bahwa `marts.data_freshness` sudah mencapai kemarin waktu Bali.
+**Alternatif:** Selalu hanya memproses "kemarin"; atau menganggap run sukses selama tidak ada error.
+
+**Alasan:** Bila GitHub Actions melewatkan satu hari (jadwal tertunda, secret bermasalah), versi "hanya kemarin" meninggalkan lubang permanen di data. Dengan catch-up, run berikutnya menutup lubang itu tanpa campur tangan. Cek kesegaran memastikan arti "hijau" sama dengan "dashboard menampilkan data kemarin"; run yang tidak error tetapi tidak menambah data tetap dianggap gagal. Simulasi dua hari terlewat: cek gagal ("2 days late"), lalu satu run catch-up memulihkan semuanya.
+
+---
+
+## 17. Dua role database dengan hak minimum
+
+**Tanggal:** 22 Okt 2026
+
+**Pilihan:** `pipeline_rw` memiliki semua skema dan dipakai GitHub Actions; `looker_ro` hanya bisa membaca skema `marts` (termasuk tabel yang dibuat ulang dbt setiap hari, lewat default privileges). Pembuatan role dilakukan sekali oleh owner, di luar pipeline.
+**Alternatif:** Satu user owner untuk pipeline dan dashboard.
+
+**Alasan:** Kredensial dashboard tersimpan di Looker Studio dan mungkin dibagikan; bila bocor, yang terbuka hanya angka agregat di mart, bukan data mentah berisi email tamu, dan tidak ada yang bisa diubah atau dihapus. Pipeline juga tidak diberi hak membuat role, jadi kode yang salah tidak bisa mengubah hak akses. Diuji lokal: `looker_ro` membaca `marts.mart_property_monthly` setelah dbt membangun ulangnya, dan ditolak di `raw`.
