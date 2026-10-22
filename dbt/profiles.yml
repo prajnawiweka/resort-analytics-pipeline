@@ -1,0 +1,15 @@
+# Connection settings are read from the same POSTGRES_* environment variables as the
+# Python code. Run dbt with `--profiles-dir .` from the dbt/ folder (the Makefile does this).
+resort_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('POSTGRES_HOST', 'localhost') }}"
+      port: "{{ env_var('POSTGRES_PORT', '5432') | as_number }}"
+      dbname: "{{ env_var('POSTGRES_DB', 'resort') }}"
+      user: "{{ env_var('POSTGRES_USER', 'pipeline_rw') }}"
+      password: "{{ env_var('POSTGRES_PASSWORD', '') }}"
+      sslmode: "{{ env_var('POSTGRES_SSLMODE', 'disable') }}"
+      schema: public
+      threads: 4

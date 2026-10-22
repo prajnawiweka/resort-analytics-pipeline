@@ -1,0 +1,27 @@
+# Secrets
+.env
+*.pem
+*service-account*.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+logs/
+
+# Generated data (kept out of git; regenerate with `make generate`)
+data/incoming/*
+!data/incoming/.gitkeep
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/

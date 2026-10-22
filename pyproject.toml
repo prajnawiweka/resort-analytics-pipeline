@@ -1,0 +1,17 @@
+[project]
+name = "resort-analytics-pipeline"
+version = "0.1.0"
+description = "End-to-end analytics pipeline for Tropical Haven Resort Group: Python, PostgreSQL, dbt, Looker Studio."
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["dbt"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

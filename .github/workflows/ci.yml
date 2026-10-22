@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    # A throwaway Postgres for every run, so tests hit a real database
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: resort
+          POSTGRES_USER: pipeline_rw
+          POSTGRES_PASSWORD: ci-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U pipeline_rw -d resort"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: resort
+      POSTGRES_USER: pipeline_rw
+      POSTGRES_PASSWORD: ci-only-password
+      POSTGRES_SSLMODE: disable
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run CI checks
+        run: make ci
