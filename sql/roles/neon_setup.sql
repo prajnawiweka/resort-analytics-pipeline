@@ -17,6 +17,9 @@ create role looker_ro   login password 'REPLACE-looker-password';
 grant pipeline_rw to current_user;
 
 grant connect on database resort to pipeline_rw, looker_ro;
+-- Python and dbt run "create schema if not exists", which checks this privilege even when
+-- the schema already exists
+grant create on database resort to pipeline_rw;
 
 -- The pipeline owns the data layers so it can create and replace tables
 create schema if not exists raw       authorization pipeline_rw;
