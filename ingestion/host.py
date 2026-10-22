@@ -9,6 +9,7 @@ or stray spaces into the host secret. normalize_host() keeps only the host name.
 from __future__ import annotations
 
 import os
+import socket
 import sys
 from urllib.parse import urlsplit
 
@@ -37,11 +38,25 @@ def describe(raw: str) -> dict[str, object]:
     }
 
 
+def address_counts(host: str) -> dict[str, int]:
+    """How many IPv4 and IPv6 addresses the host resolves to (no addresses are printed)."""
+    counts = {}
+    for name, family in (("ipv4_addresses", socket.AF_INET), ("ipv6_addresses", socket.AF_INET6)):
+        try:
+            counts[name] = len({a[4][0] for a in socket.getaddrinfo(host, 5432, family)})
+        except socket.gaierror:
+            counts[name] = 0
+    return counts
+
+
 def main() -> int:
     raw = os.getenv("POSTGRES_HOST", "")
     clean = normalize_host(raw)
-    for key, value in describe(raw).items():
+    facts = {**describe(raw), **(address_counts(clean) if clean else {})}
+    for key, value in facts.items():
         print(f"{key}: {value}")
+    if os.getenv("GITHUB_ACTIONS"):
+        print("::notice title=database host::" + ", ".join(f"{k}={v}" for k, v in facts.items()))
     if not clean:
         print("::error title=host::POSTGRES_HOST is empty after cleaning")
         return 1

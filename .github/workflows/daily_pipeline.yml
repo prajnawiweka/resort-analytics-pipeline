@@ -47,6 +47,10 @@ jobs:
         if: steps.config.outputs.configured == 'true'
         run: pip install -r requirements.txt
 
+      - name: Prefer IPv4 (GitHub runners have no IPv6 route)
+        if: steps.config.outputs.configured == 'true'
+        run: echo "precedence ::ffff:0:0/96 100" | sudo tee -a /etc/gai.conf
+
       - name: Check and clean the database host
         if: steps.config.outputs.configured == 'true'
         run: .github/scripts/run_step.sh host python -m ingestion.host
