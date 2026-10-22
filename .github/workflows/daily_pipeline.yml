@@ -13,7 +13,8 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # A normal day takes a few minutes; the first run backfills ~2 years over a long network path
+    timeout-minutes: 90
 
     env:
       POSTGRES_HOST: ${{ secrets.NEON_HOST }}
