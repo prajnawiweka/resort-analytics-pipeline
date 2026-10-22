@@ -50,6 +50,8 @@ Alasan setiap pilihan teknologi ada di [docs/decisions.md](docs/decisions.md). S
 | Direct booking share | reservasi direct tidak batal ÷ reservasi tidak batal |
 | Low rating share | review dengan rating < 4 ÷ semua review |
 
+**Temuan utama** (Jan–Sep 2026, detail di [docs/insights.md](docs/insights.md)): Seminyak menanggung seluruh selisih target grup (92,9% dari target, tumbuh hanya +2,2% YoY) dan skor kebersihannya turun ke 3,81 pada Jun–Sep; kampanye direct booking menaikkan share direct dari 18,0% ke 24,3% dan menghemat ±USD 200 ribu komisi; OTA punya cancellation rate 18,6% vs Direct 6,4%.
+
 Lapisan dbt: `staging` (bersihkan, ketik, pilih versi terbaru) → `intermediate` (petakan kode sumber ke id perusahaan, cocokkan OTA ↔ PMS) → `marts`.
 
 ## Bagaimana angka dijamin benar
@@ -103,7 +105,7 @@ docs/                 Catatan keputusan, data dictionary, runbook
 | M3 Testing | Tes rekonsiliasi dan aturan bisnis lanjutan | Selesai |
 | M4 Automation | Pipeline harian ke Neon | Siap; menunggu setup Neon |
 | M5 Dashboard | Salinan dashboard Looker Studio membaca marts | |
-| M6 Dokumentasi | README final, data dictionary, runbook, insight | |
+| M6 Dokumentasi | README final, data dictionary, runbook, insight | Sebagian: runbook dan insight selesai |
 
 ## Data
 

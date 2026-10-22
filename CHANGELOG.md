@@ -2,6 +2,12 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/). Versi mengikuti milestone project.
 
+## [Unreleased] · M6 Dokumentasi (sebagian)
+
+### Ditambahkan
+- `docs/insights.md`: 5 temuan Jan–Sep 2026 dengan angka, tindakan, dan batasan analisis.
+- `dbt/analyses/`: 5 query yang menghasilkan setiap angka di insight, bisa dijalankan ulang.
+
 ## [0.5.0] - 2026-10-22 · M4 Automation (menunggu Neon)
 
 ### Ditambahkan
