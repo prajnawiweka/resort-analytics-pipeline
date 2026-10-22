@@ -10,8 +10,8 @@
 --   pipeline_rw : used by GitHub Actions; owns and rebuilds every schema
 --   looker_ro   : used by Looker Studio / Power BI; may only read the marts schema
 
-create role pipeline_rw login password 'REPLACE-pipeline-password';
-create role looker_ro   login password 'REPLACE-looker-password';
+create role pipeline_rw login password 'PASS123-pipeline-password';
+create role looker_ro   login password 'PASS123-looker-password';
 
 -- Let the owner act for pipeline_rw, needed to hand it the schemas below
 grant pipeline_rw to current_user;
