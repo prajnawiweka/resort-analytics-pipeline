@@ -4,7 +4,7 @@
 
 Pipeline analitik end-to-end untuk **Tropical Haven Resort Group** (5 resort di Bali, data dummy): data harian dari beberapa sistem sumber dimuat ke PostgreSQL dengan Python, diolah dan dites dengan dbt, dijalankan otomatis oleh GitHub Actions, lalu ditampilkan di Looker Studio.
 
-> **Status:** M2 Modeling selesai: star schema dan tabel KPI di skema `marts`, 99 model dan tes dbt lulus, total cocok 100% dengan data sumber. Lihat [Roadmap](#roadmap).
+> **Status:** M3 Testing selesai: 29 tes Python + 84 tes dbt (termasuk 10 tes rekonsiliasi) lulus, dan terbukti gagal saat data sengaja dirusak. Lihat [Roadmap](#roadmap).
 
 ## Masalah yang diselesaikan
 
@@ -52,6 +52,10 @@ Alasan setiap pilihan teknologi ada di [docs/decisions.md](docs/decisions.md).
 
 Lapisan dbt: `staging` (bersihkan, ketik, pilih versi terbaru) → `intermediate` (petakan kode sumber ke id perusahaan, cocokkan OTA ↔ PMS) → `marts`.
 
+## Bagaimana angka dijamin benar
+
+Tiga lapis tes berjalan di setiap PR dan setiap run harian: tes Python untuk kode, tes struktur dbt (kunci, relasi, nilai), dan tes rekonsiliasi (misalnya night audit harus sama dengan reservasi yang menginap). Bila satu tes gagal, model turunannya tidak dibangun, sehingga angka yang salah tidak sampai ke dashboard. Detail dan bukti percobaan ada di [docs/testing.md](docs/testing.md).
+
 ## Menjalankan secara lokal
 
 Prasyarat: Python 3.12+, Docker.
@@ -96,8 +100,8 @@ docs/                 Catatan keputusan, data dictionary, runbook
 | M0 Setup | Struktur repo, Postgres lokal, CI | Selesai |
 | M1 Ingestion | Generator multi-sumber, loader incremental, `load_log` | Selesai |
 | M2 Modeling | Seed master data, model dbt staging dan marts, revenue vs target | Selesai |
-| M3 Testing | Tes rekonsiliasi dan aturan bisnis lanjutan | Berikutnya |
-| M4 Automation | Pipeline harian ke Neon | |
+| M3 Testing | Tes rekonsiliasi dan aturan bisnis lanjutan | Selesai |
+| M4 Automation | Pipeline harian ke Neon | Berikutnya |
 | M5 Dashboard | Salinan dashboard Looker Studio membaca marts | |
 | M6 Dokumentasi | README final, data dictionary, runbook, insight | |
 

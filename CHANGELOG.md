@@ -2,6 +2,13 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/). Versi mengikuti milestone project.
 
+## [0.4.0] - 2026-10-22 · M3 Testing
+
+### Ditambahkan
+- 4 tes rekonsiliasi dbt: night audit vs reservasi, mart bulanan vs fakta harian, tidak ada reservasi hilang dari raw, night audit lengkap setiap hari.
+- 6 tes aturan bisnis dbt: kapasitas kamar, urutan waktu reservasi, tidak ada data setelah `data_as_of`, komisi OTA vs kontrak, target tersedia untuk setiap bulan, peringatan load terakhir gagal.
+- `docs/testing.md`: strategi tiga lapis tes dan bukti tes gagal saat data dirusak lalu pulih dengan `--force`.
+
 ## [0.3.0] - 2026-10-22 · M2 Modeling
 
 ### Ditambahkan
