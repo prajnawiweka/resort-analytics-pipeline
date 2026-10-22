@@ -8,7 +8,10 @@ All timestamps in the PMS are local Bali time (WITA, UTC+8); the JSON feeds use 
 from __future__ import annotations
 
 import csv
+import io
 import json
+import re
+import zipfile
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
@@ -182,8 +185,29 @@ def write_finance_targets(world: World, year: int, path: Path) -> int:
         for row in ws.iter_rows(min_row=5, min_col=2):
             for cell in row:
                 cell.number_format = fmt
-    wb.save(path)
+    _save_deterministic(wb, path)
     return len(PROPERTIES)
+
+
+FIXED_TIMESTAMP = datetime(2024, 1, 1)
+
+
+def _save_deterministic(wb: Workbook, path: Path) -> None:
+    """Save so the same content always gives the same bytes. Excel files normally embed the
+    save time, which would make the loader see an unchanged workbook as a new version."""
+    wb.properties.created = wb.properties.modified = FIXED_TIMESTAMP
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    with zipfile.ZipFile(buffer) as src, zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as dst:
+        for item in src.infolist():
+            info = zipfile.ZipInfo(item.filename, date_time=FIXED_TIMESTAMP.timetuple()[:6])
+            info.compress_type = zipfile.ZIP_DEFLATED
+            data = src.read(item.filename)
+            if item.filename == "docProps/core.xml":  # openpyxl stamps "modified" at save time
+                data = re.sub(
+                    rb"(<dcterms:modified[^>]*>)[^<]*", rb"\g<1>2024-01-01T00:00:00Z", data
+                )
+            dst.writestr(info, data)
 
 
 def _write_csv(path: Path, header: list[str], rows: list[list]) -> None:

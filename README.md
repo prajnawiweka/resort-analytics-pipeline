@@ -4,7 +4,7 @@
 
 Pipeline analitik end-to-end untuk **Tropical Haven Resort Group** (5 resort di Bali, data dummy): data harian dari beberapa sistem sumber dimuat ke PostgreSQL dengan Python, diolah dan dites dengan dbt, dijalankan otomatis oleh GitHub Actions, lalu ditampilkan di Looker Studio.
 
-> **Status:** M1 Ingestion selesai: 4 sistem sumber, ±95 ribu baris riwayat dimuat ke skema `raw`. Lihat [Roadmap](#roadmap).
+> **Status:** M2 Modeling selesai: star schema dan tabel KPI di skema `marts`, 99 model dan tes dbt lulus, total cocok 100% dengan data sumber. Lihat [Roadmap](#roadmap).
 
 ## Masalah yang diselesaikan
 
@@ -28,6 +28,30 @@ Sistem sumber        Ingestion          PostgreSQL (Neon)                  BI
 
 Alasan setiap pilihan teknologi ada di [docs/decisions.md](docs/decisions.md).
 
+## Model data (skema `marts`)
+
+| Tabel | Grain | Isi |
+|---|---|---|
+| `fact_bookings` | 1 reservasi | Tanggal booking/check-in, status, lead time, revenue, komisi, tamu berulang |
+| `fact_daily_revenue` | 1 properti × 1 hari | Kamar tersedia/terjual, revenue kamar, F&B, spa, lainnya |
+| `fact_reviews` | 1 review | Rating skala 1–5, platform, negara reviewer, reservasi terkait bila ada |
+| `fact_monthly_target` | 1 properti × 1 bulan | Target revenue dan occupancy dari Finance |
+| `dim_property`, `dim_room_type`, `dim_channel`, `dim_guest`, `dim_date` | — | Dimensi; `dim_guest` tanpa email (kunci di-hash) |
+| `mart_property_monthly` | 1 properti × 1 bulan | **Semua KPI dashboard** + perbandingan tahun lalu |
+| `mart_revenue_vs_target` | 1 properti × 1 bulan | Aktual vs target, target bulan berjalan di-prorata |
+| `data_freshness` | 1 baris | Tanggal data terakhir (`data_as_of`) |
+
+| KPI | Definisi |
+|---|---|
+| Occupancy | kamar terjual ÷ kamar tersedia |
+| ADR | revenue kamar ÷ kamar terjual |
+| RevPAR | revenue kamar ÷ kamar tersedia |
+| Cancellation rate | reservasi batal ÷ semua reservasi (bulan check-in) |
+| Direct booking share | reservasi direct tidak batal ÷ reservasi tidak batal |
+| Low rating share | review dengan rating < 4 ÷ semua review |
+
+Lapisan dbt: `staging` (bersihkan, ketik, pilih versi terbaru) → `intermediate` (petakan kode sumber ke id perusahaan, cocokkan OTA ↔ PMS) → `marts`.
+
 ## Menjalankan secara lokal
 
 Prasyarat: Python 3.12+, Docker.
@@ -46,7 +70,9 @@ make ci                   # lint, test, cek koneksi dbt
 | `make db-init` | Membuat skema `raw`, `staging`, `marts` dan tabel raw |
 | `make generate END=YYYY-MM-DD` | Menulis file sumber untuk setiap tanggal bisnis s.d. END (default: kemarin) |
 | `make load` | Memuat file baru atau berubah ke skema `raw` (file yang sama dilewati) |
-| `make pipeline` | `db-init` + `generate` + `load` |
+| `make pipeline` | `db-init` + `generate` + `load` + `dbt-build` |
+| `make dbt-build` | Memuat seed, membangun staging dan marts, menjalankan semua tes dbt |
+| `make dbt-docs` | Dokumentasi dbt dan lineage graph di browser |
 | `make lint` | Cek gaya kode Python (ruff) |
 | `make test` | Unit test Python (butuh database menyala) |
 | `make dbt-debug` | Cek dbt bisa terhubung ke database |
@@ -69,8 +95,8 @@ docs/                 Catatan keputusan, data dictionary, runbook
 |---|---|---|
 | M0 Setup | Struktur repo, Postgres lokal, CI | Selesai |
 | M1 Ingestion | Generator multi-sumber, loader incremental, `load_log` | Selesai |
-| M2 Modeling | Seed master data, model dbt staging dan marts, revenue vs target | Berikutnya |
-| M3 Testing | Tes dbt dan rekonsiliasi | |
+| M2 Modeling | Seed master data, model dbt staging dan marts, revenue vs target | Selesai |
+| M3 Testing | Tes rekonsiliasi dan aturan bisnis lanjutan | Berikutnya |
 | M4 Automation | Pipeline harian ke Neon | |
 | M5 Dashboard | Salinan dashboard Looker Studio membaca marts | |
 | M6 Dokumentasi | README final, data dictionary, runbook, insight | |

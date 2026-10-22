@@ -2,6 +2,20 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/). Versi mengikuti milestone project.
 
+## [0.3.0] - 2026-10-22 · M2 Modeling
+
+### Ditambahkan
+- Seed master data di skema `reference`: properti, tipe kamar, channel, negara, pemetaan nama properti dan ejaan channel antar sistem.
+- Model staging untuk 5 feed: cast tipe, versi terbaru per kunci, konversi UTC → WITA, skala rating 1–5, unpivot target Finance tanpa baris TOTAL.
+- Model intermediate: id perusahaan untuk reservasi PMS; pencocokan OTA ↔ PMS lewat nomor reservasi atau atribut menginap.
+- Star schema di `marts`: 4 tabel fakta, 5 dimensi, `mart_property_monthly` (definisi KPI), `mart_revenue_vs_target`, `data_freshness`.
+- 99 node dbt (model, seed, tes) dan 7 tes Python baru (seed vs sistem sumber, file deterministik).
+- CI menjalankan pipeline 2 bulan data + `dbt build`.
+- Keputusan #13–#15.
+
+### Diperbaiki
+- File Excel Finance kini identik byte demi byte saat digenerate ulang, sehingga loader tidak memuatnya ulang tanpa alasan.
+
 ## [0.2.0] - 2026-10-22 · M1 Ingestion
 
 ### Ditambahkan

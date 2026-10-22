@@ -15,7 +15,26 @@ models:
     staging:
       +schema: staging
       +materialized: view
+    intermediate:
+      +schema: staging
+      +materialized: view
     marts:
       +schema: marts
       # Tables, not views: dashboards query them on every page load
       +materialized: table
+
+seeds:
+  resort_analytics:
+    +schema: reference
+    channels:
+      +column_types:
+        commission_rate: "numeric(5, 4)"
+    properties:
+      +column_types:
+        opening_date: date
+
+vars:
+  # Business timezone: all local dates and times are Bali time (WITA, UTC+8)
+  local_timezone: Asia/Makassar
+  # A low rating, on the 1-5 scale
+  low_rating_threshold: 4

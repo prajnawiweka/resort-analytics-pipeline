@@ -1,0 +1,11 @@
+channel_id,channel_code,channel_name,channel_type,commission_rate
+1,WEB,Direct Website,Direct,0.0
+2,BDC,Booking.com,OTA,0.15
+3,EXP,Expedia,OTA,0.18
+4,AGD,Agoda,OTA,0.14
+5,GADS,Google Ads,Paid,0.08
+6,IG,Instagram,Social,0.05
+7,TA,Travel Agent,Agent,0.12
+8,ABNB,Airbnb,OTA,0.2
+9,TRIP,TripAdvisor,OTA,0.16
+10,CORP,Corporate Direct,Direct,0.0

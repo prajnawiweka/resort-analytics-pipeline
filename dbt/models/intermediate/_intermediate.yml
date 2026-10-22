@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: int_pms__reservations
+    description: PMS reservations with company ids (property, room type, channel) and a hashed guest key.
+    columns:
+      - name: res_no
+        data_tests: [unique, not_null]
+
+  - name: int_ota__bookings_matched
+    description: >
+      Each OTA booking linked to its PMS reservation, by reservation number or, when the
+      channel manager omitted it, by a unique match on property, channel, stay dates and amount.
+    columns:
+      - name: ota_ref
+        data_tests: [unique, not_null]
+      - name: match_method
+        description: unmatched means no PMS reservation could be identified; investigate.
+        data_tests:
+          - accepted_values:
+              arguments: {values: ['reservation_no', 'stay_attributes']}
+              config: {severity: warn}
+      - name: res_no
+        data_tests:
+          - unique
+          - relationships: {to: ref('int_pms__reservations'), field: res_no}

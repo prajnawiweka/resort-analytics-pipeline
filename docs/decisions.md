@@ -133,3 +133,36 @@ Setiap keputusan teknis penting dicatat di sini: pilihannya, alternatif yang dip
 **Alternatif:** Tabel master yang diisi manual di database; atau master data dari salah satu sistem sumber.
 
 **Alasan:** Master data jarang berubah dan perlu ditinjau manusia. Sebagai seed, setiap perubahan (misalnya properti baru atau ejaan channel baru dari OTA) tercatat di Git lewat PR dan langsung dites bersama model lain. Tidak ada satu sistem sumber yang memegang semua kode, jadi pemetaan memang harus dibuat dan dirawat sendiri.
+
+---
+
+## 13. Booking OTA tanpa nomor reservasi dicocokkan lewat atribut menginap
+
+**Tanggal:** 22 Okt 2026
+
+**Pilihan:** Booking OTA dihubungkan ke reservasi PMS lewat `hotel_reservation_no`. Bila nomor itu kosong (±2% record), dicocokkan lewat kombinasi properti, channel, tanggal check-in, tanggal check-out, dan total harga, tetapi hanya jika tepat satu reservasi PMS yang belum terhubung cocok. Hasilnya dicatat di kolom `ota_match_method`.
+**Alternatif:** Membuang record tanpa nomor reservasi; atau mencocokkan dengan aturan longgar (mis. hanya properti dan tanggal).
+
+**Alasan:** Membuang record berarti komisi aktual hilang dan review Booking.com tidak bisa dihubungkan ke tamunya. Aturan longgar berisiko memasangkan booking ke reservasi yang salah, dan kesalahan seperti itu tidak terlihat di dashboard. Syarat "tepat satu kandidat" membuat pencocokan aman; record yang tetap tidak cocok muncul sebagai peringatan di tes dbt. Pada data riwayat, ke-535 record tanpa nomor berhasil dicocokkan.
+
+---
+
+## 14. KPI didefinisikan di mart; tabel fakta hanya berisi angka yang bisa dijumlahkan
+
+**Tanggal:** 22 Okt 2026
+
+**Pilihan:** `mart_property_monthly` menghitung semua KPI bulanan (occupancy, ADR, RevPAR, cancellation rate, direct booking share, rating, YoY) dari total bulanan. `fact_daily_revenue` dan `fact_bookings` hanya berisi kolom aditif; rasio untuk rentang tanggal bebas di dashboard dihitung sebagai SUM(pembilang) / SUM(penyebut).
+**Alternatif:** Menyimpan rasio harian di tabel fakta; atau membiarkan semua KPI dihitung di calculated field Looker Studio seperti versi lama.
+
+**Alasan:** Rata-rata dari rasio harian memberi angka yang salah (hari sepi dan hari ramai diberi bobot sama). Dengan kolom aditif, dashboard bisa memfilter tanggal dan properti apa pun lalu tetap menghitung rasio yang benar. Mart bulanan menjadi satu definisi resmi yang terdokumentasi dan dites, sehingga angka di dashboard, Power BI, maupun analisis lain selalu sama.
+
+---
+
+## 15. Identitas tamu = email (di-hash), segmen tamu dihitung dari riwayat
+
+**Tanggal:** 22 Okt 2026
+
+**Pilihan:** Tamu dikenali dari email yang sudah di-lowercase, lalu di-hash md5 sebagai `guest_key`. Segmen (New, Returning, VIP) dihitung dari jumlah menginap dan total belanja di semua reservasi.
+**Alternatif:** Nama tamu sebagai kunci; atau nomor tamu dari PMS.
+
+**Alasan:** PMS simulasi tidak mengirim nomor tamu, dan nama tidak unik. Email cukup stabil, tetapi kadang terkirim dalam huruf besar, sehingga harus dinormalisasi dulu. Hash membuat tabel mart tidak perlu menyimpan email, jadi dashboard tidak pernah menampilkan data pribadi.

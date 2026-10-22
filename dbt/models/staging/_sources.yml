@@ -1,0 +1,18 @@
+version: 2
+
+sources:
+  - name: raw
+    description: Source files exactly as received, loaded by ingestion/load.py. See docs/sources.md.
+    schema: raw
+    tables:
+      - name: load_log
+      - name: pms_reservations
+        description: PMS reservation export, one file per business date.
+      - name: pms_night_audit
+        description: PMS night audit, rooms and revenue per hotel per day.
+      - name: ota_bookings
+        description: Channel manager report, one jsonb record per OTA booking event.
+      - name: reviews
+        description: Review aggregator feed, one jsonb record per review.
+      - name: finance_targets
+        description: Finance target workbook rows, one jsonb record per spreadsheet row.

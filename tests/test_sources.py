@@ -2,6 +2,7 @@
 
 import csv
 import json
+import time
 from datetime import date, datetime, timedelta
 
 import pytest
@@ -88,3 +89,14 @@ def test_opening_export_holds_all_prior_bookings(tmp_path):
     unique = {r["RES_NO"] for r in rows}
     expected = {b.res_no for b in world.bookings if b.booked_at.date() <= OPENING_DATE}
     assert unique == expected
+
+
+def test_files_are_byte_identical_when_regenerated(tmp_path):
+    """The loader skips unchanged files by checksum, so regenerating must not change bytes."""
+    world = build_world()
+    first, second = tmp_path / "a", tmp_path / "b"
+    write_business_date(world, date(2025, 12, 15), first)
+    time.sleep(1.1)  # Excel metadata has one-second resolution
+    write_business_date(world, date(2025, 12, 15), second)
+    for path in (first / "2025-12-15").iterdir():
+        assert path.read_bytes() == (second / "2025-12-15" / path.name).read_bytes(), path.name
