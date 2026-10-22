@@ -1,0 +1,97 @@
+name: Daily pipeline
+
+on:
+  schedule:
+    # 22:17 UTC = 06:17 WITA. Off the hour, when GitHub's scheduler is less busy.
+    - cron: "17 22 * * *"
+  workflow_dispatch: # manual run from the Actions tab (the first run backfills everything)
+
+concurrency:
+  group: daily-pipeline
+  cancel-in-progress: false # never cut a running load short
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      POSTGRES_HOST: ${{ secrets.NEON_HOST }}
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: ${{ secrets.NEON_DATABASE }}
+      POSTGRES_USER: ${{ secrets.NEON_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.NEON_PASSWORD }}
+      POSTGRES_SSLMODE: require
+
+    steps:
+      - name: Check that the database is configured
+        id: config
+        run: |
+          if [ -z "$POSTGRES_HOST" ] || [ -z "$POSTGRES_PASSWORD" ]; then
+            echo "::notice::NEON_* secrets are not set yet; skipping. See docs/runbook.md."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.config.outputs.configured == 'true'
+
+      - uses: actions/setup-python@v5
+        if: steps.config.outputs.configured == 'true'
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        if: steps.config.outputs.configured == 'true'
+        run: pip install -r requirements.txt
+
+      - name: Create schemas and raw tables
+        if: steps.config.outputs.configured == 'true'
+        run: python -m ingestion.init_db
+
+      - name: Generate source files for every day not loaded yet
+        if: steps.config.outputs.configured == 'true'
+        run: python -m ingestion.generate --catch-up
+
+      - name: Load into raw
+        if: steps.config.outputs.configured == 'true'
+        run: python -m ingestion.load
+
+      - name: Build and test with dbt
+        if: steps.config.outputs.configured == 'true'
+        working-directory: dbt
+        run: |
+          dbt seed --profiles-dir .
+          dbt build --profiles-dir .
+
+      - name: Check the marts reach yesterday
+        if: steps.config.outputs.configured == 'true'
+        run: python -m ingestion.check_freshness
+
+      - name: Write run summary
+        if: always() && steps.config.outputs.configured == 'true'
+        run: |
+          python - <<'EOF' >> "$GITHUB_STEP_SUMMARY"
+          from ingestion.db import connect
+          with connect() as conn:
+              as_of = conn.execute("select data_as_of from marts.data_freshness").fetchone()[0]
+              rows = conn.execute(
+                  "select source, count(*), coalesce(sum(rows_loaded), 0)"
+                  " from raw.load_log where finished_at > now() - interval '1 hour'"
+                  " group by source order by source"
+              ).fetchall()
+          print(f"### Data as of {as_of}\n")
+          print("| Source | Files loaded | Rows |\n|---|---|---|")
+          for source, files, n in rows:
+              print(f"| {source} | {files} | {n} |")
+          EOF
+
+      - name: Keep dbt results
+        if: always() && steps.config.outputs.configured == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dbt-run-results
+          path: dbt/target/run_results.json
+          retention-days: 30
