@@ -97,13 +97,15 @@ CHANNELS = [
     Channel(1, "WEB", "Direct Website", "Direct", 0, 0.06, 45, 0.97),
     Channel(2, "BDC", "Booking.com", "OTA", 15, 0.19, 30, 1.00,
             ("Booking.com", "booking.com", "BOOKING.COM", "Booking.com ")),
-    Channel(3, "EXP", "Expedia", "OTA", 18, 0.16, 32, 1.01, ("Expedia", "expedia.com", "Expedia Group")),
+    Channel(3, "EXP", "Expedia", "OTA", 18, 0.16, 32, 1.01,
+            ("Expedia", "expedia.com", "Expedia Group")),
     Channel(4, "AGD", "Agoda", "OTA", 14, 0.17, 25, 0.98, ("Agoda", "agoda")),
     Channel(5, "GADS", "Google Ads", "Paid", 8, 0.10, 28, 1.00),
     Channel(6, "IG", "Instagram", "Social", 5, 0.09, 35, 0.99),
     Channel(7, "TA", "Travel Agent", "Agent", 12, 0.08, 60, 0.92),
     Channel(8, "ABNB", "Airbnb", "OTA", 20, 0.14, 40, 1.03, ("Airbnb", "airbnb")),
-    Channel(9, "TRIP", "TripAdvisor", "OTA", 16, 0.12, 30, 1.00, ("TripAdvisor", "Tripadvisor", "tripadvisor")),
+    Channel(9, "TRIP", "TripAdvisor", "OTA", 16, 0.12, 30, 1.00,
+            ("TripAdvisor", "Tripadvisor", "tripadvisor")),
     Channel(10, "CORP", "Corporate Direct", "Direct", 0, 0.05, 20, 0.90),
 ]  # fmt: skip
 CH = {c.id: c for c in CHANNELS}
@@ -129,7 +131,18 @@ SPEND_FACTOR = {"US": 1.12, "GB": 1.08, "DE": 1.05, "JP": 1.07, "CN": 1.10, "KR"
                 "AU": 1.0, "ID": 0.88, "IN": 0.97, "RU": 1.04, "SG": 1.05}  # fmt: skip
 
 FIRST_NAMES = {
-    "AU": ["Jack", "Olivia", "Liam", "Charlotte", "Noah", "Mia", "Lachlan", "Isla", "Cooper", "Ruby"],
+    "AU": [
+        "Jack",
+        "Olivia",
+        "Liam",
+        "Charlotte",
+        "Noah",
+        "Mia",
+        "Lachlan",
+        "Isla",
+        "Cooper",
+        "Ruby",
+    ],
     "ID": ["Putu", "Made", "Dewi", "Rizky", "Siti", "Andi", "Ayu", "Budi", "Fitri", "Agus"],
     "CN": ["Wei", "Li", "Jing", "Hao", "Yan", "Mei", "Jun", "Xin"],
     "KR": ["Min-jun", "Seo-yeon", "Ji-ho", "Ha-eun", "Do-yun", "Su-bin"],
@@ -148,9 +161,9 @@ LAST_NAMES = {
     "IN": ["Sharma", "Patel", "Singh", "Gupta", "Kumar"],
     "RU": ["Ivanov", "Smirnov", "Kuznetsov", "Popov", "Volkov"],
 }
-WESTERN_FIRST = ["James", "Emma", "Oliver", "Sophie", "Lucas", "Hannah", "Thomas", "Laura", "Daniel",
-                 "Julia", "Max", "Clara", "Leon", "Elise", "Matteo", "Sofia", "Erik", "Freya",
-                 "Pablo", "Lucia"]  # fmt: skip
+WESTERN_FIRST = ["James", "Emma", "Oliver", "Sophie", "Lucas", "Hannah", "Thomas", "Laura",
+                 "Daniel", "Julia", "Max", "Clara", "Leon", "Elise", "Matteo", "Sofia", "Erik",
+                 "Freya", "Pablo", "Lucia"]  # fmt: skip
 WESTERN_LAST = ["Miller", "Davis", "Garcia", "Martinez", "Anderson", "Muller", "Schmidt", "Dubois",
                 "Bernard", "de Vries", "Jansen", "Rossi", "Bianchi", "Johansson", "Larsson",
                 "Fernandez", "Roberts", "Clark"]  # fmt: skip

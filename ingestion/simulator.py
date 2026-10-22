@@ -196,9 +196,7 @@ def room_type_capacity(rid: int, d: date) -> int:
     return RT[rid].count - (10 if rid == 5 and renovating(d) else 0)
 
 
-COUNTRY_MIX = {
-    pid: {c: w * MIX_TILT[pid].get(c, 1) for c, w in BASE_MIX.items()} for pid in PROP
-}
+COUNTRY_MIX = {pid: {c: w * MIX_TILT[pid].get(c, 1) for c, w in BASE_MIX.items()} for pid in PROP}
 LOS_MEAN = {1: 3.6, 2: 3.2, 3: 4.4, 4: 4.0, 5: 3.4}
 
 
@@ -269,8 +267,9 @@ def _simulate_bookings() -> tuple[list[Guest], list[Booking]]:
                     if rt.max_occupancy > adults:
                         kids = r.choice([0, 0, 1, 2]) if p.id == 4 else r.choice([0, 0, 0, 1])
                         children = min(kids, rt.max_occupancy - adults)
-                    rate = (rt.base_rate * rate_multiplier(t) * ch.rate_factor
-                            * SPEND_FACTOR.get(country, 1) ** 0.3 * r.uniform(0.93, 1.07))  # fmt: skip
+                    spend = SPEND_FACTOR.get(country, 1) ** 0.3
+                    rate = rt.base_rate * rate_multiplier(t) * ch.rate_factor * spend
+                    rate *= r.uniform(0.93, 1.07)
                     if lead <= 3:
                         rate *= 1.06
                     cancelled_at = None
@@ -282,6 +281,12 @@ def _simulate_bookings() -> tuple[list[Guest], list[Booking]]:
                         )
                         if cancelled_at <= booked_at:
                             cancelled_at = booked_at + timedelta(minutes=r.randint(10, 180))
+                        # a cancellation can happen on the arrival day, never after it
+                        last_moment = datetime.combine(t, datetime.max.time()).replace(
+                            microsecond=0
+                        )
+                        if cancelled_at > last_moment:
+                            cancelled_at = booked_at + timedelta(seconds=30)
                     seq += 1
                     res_no = f"RSV{t:%y%m%d}{p.id}{seq:03d}"
                     b = Booking(res_no, p.id, rt.id, ch.id, gid, t, nights, adults, children,
@@ -370,10 +375,19 @@ def _simulate_reviews(bookings: list[Booking], country_of: dict[int, str]) -> li
         reviews.append(
             Review(
                 f"{prefix}-{stable_int('review-id', b.res_no, digits=10):010d}",
-                platform, b.property_id, b.res_no, submitted,
-                {"overall": overall, "cleanliness": clean, "service": service,
-                 "location": location, "value": value},
-                text, country_of[b.guest_id],
+                platform,
+                b.property_id,
+                b.res_no,
+                submitted,
+                {
+                    "overall": overall,
+                    "cleanliness": clean,
+                    "service": service,
+                    "location": location,
+                    "value": value,
+                },
+                text,
+                country_of[b.guest_id],
             )  # fmt: skip
         )
     return reviews

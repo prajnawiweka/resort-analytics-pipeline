@@ -1,16 +1,7 @@
 """Renders the simulated world as the files each source system would send for one business date.
 
-| File                         | System                | Format | Quirks the pipeline must handle       |
-|------------------------------|-----------------------|--------|----------------------------------------|
-| pms_reservations.csv         | Property Mgmt System  | CSV    | dd/mm/yyyy dates, hotel codes, ISO2     |
-|                              |                       |        | countries, duplicate rows, stray spaces |
-| pms_night_audit.csv          | Property Mgmt System  | CSV    | amounts as text with thousand separator |
-| ota_bookings.json            | Channel manager       | JSON   | own property names, channel spellings,  |
-|                              |                       |        | UTC timestamps, missing PMS link        |
-| reviews.json                 | Review aggregator     | JSON   | 1-10 and 1-5 scales, missing sub-scores,|
-|                              |                       |        | different booking references            |
-| finance_targets_<year>.xlsx  | Finance (Excel)       | XLSX   | title rows, wide months, TOTAL row      |
-
+Each file mimics the format and quirks of one real system (PMS, channel manager, review
+aggregator, finance Excel). The full data contract is in docs/sources.md.
 All timestamps in the PMS are local Bali time (WITA, UTC+8); the JSON feeds use UTC.
 """
 
@@ -24,7 +15,16 @@ from pathlib import Path
 from openpyxl import Workbook
 from openpyxl.styles import Font
 
-from ingestion.config import CH, COUNTRIES, HORIZON, OPENING_DATE, PROP, PROPERTIES, REPORT_START, RT
+from ingestion.config import (
+    CH,
+    COUNTRIES,
+    HORIZON,
+    OPENING_DATE,
+    PROP,
+    PROPERTIES,
+    REPORT_START,
+    RT,
+)
 from ingestion.simulator import (
     Booking,
     World,

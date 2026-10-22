@@ -22,7 +22,7 @@ import re
 import sys
 from collections.abc import Iterator
 from dataclasses import dataclass
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 import psycopg
@@ -135,7 +135,7 @@ def load_file(
     if not force and already_loaded(conn, source_file, digest):
         return Result(source_file, "skipped")
 
-    started = datetime.now(timezone.utc)
+    started = datetime.now(UTC)
     try:
         with conn.transaction():
             load_id = conn.execute(
