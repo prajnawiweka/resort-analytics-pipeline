@@ -160,3 +160,7 @@ models:
         description: Non-cancelled direct bookings / non-cancelled bookings.
       - name: low_rating_share
         description: Reviews with overall rating below 4 / all reviews.
+      - name: detailed_reviews
+        description: >
+          Reviews that carry sub-scores (Booking.com, Post-stay Survey). Weight for
+          avg_cleanliness and avg_service; Google Reviews and TripAdvisor publish only overall.
