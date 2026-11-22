@@ -4,18 +4,30 @@
 
 Pipeline analitik end-to-end untuk **Tropical Haven Resort Group** (5 resort di Bali, data dummy): data harian dari beberapa sistem sumber dimuat ke PostgreSQL dengan Python, diolah dan dites dengan dbt, dijalankan otomatis oleh GitHub Actions, lalu ditampilkan di Looker Studio.
 
-> **Status:** Pipeline harian berjalan di Neon dan dashboard Looker Studio (3 halaman) sudah membaca `marts`. Sisa: dokumentasi final. Lihat [Roadmap](#roadmap).
+> **Status:** Selesai (M0–M6). Pipeline berjalan otomatis setiap pagi ke Neon, dashboard Looker Studio 3 halaman membaca `marts`. Lihat [Roadmap](#roadmap).
 
 ## Masalah yang diselesaikan
 
 Dashboard versi sebelumnya membaca Google Sheets yang diisi dengan copy-paste: tanpa kunci, tanpa validasi, dan rumus KPI tersebar di calculated field dashboard. Project ini menggantinya dengan satu sumber data tepercaya, definisi KPI tunggal di SQL, tes kualitas data otomatis, dan update harian tanpa campur tangan manual.
+
+## Ringkasan
+
+| | |
+|---|---|
+| Sumber | 4 sistem (PMS, channel manager, agregator review, Excel Finance), 5 feed dengan format dan masalah kualitasnya sendiri |
+| Ingestion | Python: loader incremental, file yang sama tidak dimuat dua kali, setiap load tercatat di `raw.load_log` |
+| Transformasi | dbt: `staging` → `intermediate` → `marts` (star schema + 2 mart KPI) |
+| Kualitas data | Tes Python, tes struktur dbt, tes rekonsiliasi dan aturan bisnis; berjalan di setiap PR dan setiap run harian |
+| Otomasi | GitHub Actions 06:17 WITA: mengejar hari yang terlewat sendiri, gagal bila data tidak sampai kemarin |
+| Keamanan | Dua role database: pipeline menulis, dashboard hanya membaca `marts` (tanpa email tamu) |
+| Dashboard | Looker Studio, 3 halaman, rasio dihitung ulang dari kolom aditif agar benar untuk filter apa pun |
 
 ## Arsitektur
 
 ```
 Sistem sumber        Ingestion          PostgreSQL (Neon)                  BI
 (PMS, OTA,     ──▶   generate.py  ──▶   raw ──▶ staging ──▶ marts   ──▶   Looker Studio
- review, finance)    load.py                  └──── dbt ────┘              (Power BI opsional)
+ review, finance)    load.py                  └──── dbt ────┘
 
                      └──────────── dijalankan oleh GitHub Actions ────────────┘
 ```
@@ -103,7 +115,7 @@ sql/                  DDL skema, dijalankan berurutan oleh make db-init
 dbt/                  Project dbt: models/staging, models/marts, tests, seeds
 tests/                Unit test Python
 data/incoming/        File harian hasil generator (tidak di-commit)
-docs/                 Catatan keputusan, data dictionary, runbook
+docs/                 decisions, data_dictionary, runbook, testing, insights, sources
 .github/workflows/    CI dan pipeline harian
 ```
 
@@ -117,7 +129,8 @@ docs/                 Catatan keputusan, data dictionary, runbook
 | M3 Testing | Tes rekonsiliasi dan aturan bisnis lanjutan | Selesai |
 | M4 Automation | Pipeline harian ke Neon | Selesai |
 | M5 Dashboard | Dashboard Looker Studio membaca marts: Overview, Guests & Channels, Revenue vs Target | Selesai |
-| M6 Dokumentasi | README final, data dictionary, runbook, insight | Sebagian: runbook, insight, data dictionary selesai |
+| M6 Dokumentasi | README final, data dictionary, runbook, insight | Selesai |
+| Opsional | File Power BI (`.pbix`) sebagai pelengkap ([keputusan #5](docs/decisions.md)) | Belum dikerjakan |
 
 ## Data
 

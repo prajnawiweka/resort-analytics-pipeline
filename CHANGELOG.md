@@ -2,7 +2,11 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/). Versi mengikuti milestone project.
 
-## [Unreleased] · M6 Dokumentasi (sebagian)
+## [1.0.0] - 2026-11-22 · M5 Dashboard dan M6 Dokumentasi
+
+### Diubah (M6)
+- README final: ringkasan project, status selesai, struktur `docs/`, Power BI ditandai opsional dan belum dikerjakan.
+- Runbook: *data freshness* Looker Studio 1 jam (dari default 12 jam).
 
 ### Ditambahkan (M5 Dashboard)
 - Dashboard Looker Studio *RESORT Report* membaca Neon lewat `looker_ro`: halaman Overview, Guests & Channels, dan Revenue vs Target.
@@ -15,7 +19,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/). Ve
 - Runbook A4: host Neon langsung (tanpa `-pooler`) dan Custom Query untuk tabel yang tidak muncul di daftar.
 - README: status dan roadmap M4–M5 selesai.
 
-### Ditambahkan
+### Ditambahkan (M6)
 - `docs/insights.md`: 5 temuan Jan–Sep 2026 dengan angka, tindakan, dan batasan analisis.
 - `dbt/analyses/`: 5 query yang menghasilkan setiap angka di insight, bisa dijalankan ulang.
 

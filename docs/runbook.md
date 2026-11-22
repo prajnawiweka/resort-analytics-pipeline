@@ -102,6 +102,6 @@ cd dbt && dbt build --profiles-dir .
 
 - **Jadwal berhenti sendiri:** GitHub menonaktifkan workflow terjadwal di repo public yang tidak ada aktivitas commit selama 60 hari. Bila itu terjadi: **Actions → Daily pipeline → Enable workflow**.
 - **Batas simulasi:** dunia simulasi berakhir 31 Des 2027; generator menolak tanggal setelah **30 Jun 2027**. Sebelum itu, perpanjang `HORIZON` di `ingestion/config.py`.
-- **Dashboard error *"The connection service is temporarily overloaded"*:** biasanya sementara (compute Neon baru bangun). Muat ulang halaman; bila sering, aktifkan cache *data freshness* di data source.
+- **Dashboard error *"The connection service is temporarily overloaded"*:** biasanya sementara (compute Neon baru bangun). Muat ulang halaman. *Data freshness* kedua data source diset **1 jam**: query ke Neon cukup jarang, tetapi data run pagi sudah tampil paling lambat 1 jam setelah run selesai. Jangan kembalikan ke default 12 jam.
 - **Ganti password:** ubah di Neon, lalu perbarui secret `NEON_PASSWORD` (pipeline) atau kredensial data source Looker Studio (`looker_ro`).
 - **Lokal:** `make up`, `make pipeline`, `make ci`; lihat README.
