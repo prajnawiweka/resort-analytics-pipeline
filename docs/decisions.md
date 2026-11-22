@@ -188,3 +188,15 @@ Setiap keputusan teknis penting dicatat di sini: pilihannya, alternatif yang dip
 **Alternatif:** Satu user owner untuk pipeline dan dashboard.
 
 **Alasan:** Kredensial dashboard tersimpan di Looker Studio dan mungkin dibagikan; bila bocor, yang terbuka hanya angka agregat di mart, bukan data mentah berisi email tamu, dan tidak ada yang bisa diubah atau dihapus. Pipeline juga tidak diberi hak membuat role, jadi kode yang salah tidak bisa mengubah hak akses. Diuji lokal: `looker_ro` membaca `marts.mart_property_monthly` setelah dbt membangun ulangnya, dan ditolak di `raw`.
+
+---
+
+## 18. Calculated field Looker Studio hanya menggabungkan ulang kolom aditif dari mart
+
+**Tanggal:** 22 Nov 2026
+
+**Pilihan:** Dashboard membaca `mart_property_monthly` dan `mart_revenue_vs_target`. Setiap rasio di Looker Studio dihitung ulang sebagai `SUM(pembilang) / SUM(penyebut)` dari kolom aditif mart; skor review dibobot jumlah review; YoY hanya memakai bulan yang punya data tahun lalu. Definisi tiap field tercatat di runbook A5.
+**Alternatif:** Menampilkan kolom rasio mart apa adanya (Looker akan menjumlahkan atau merata-ratakannya); atau membuat mart terpisah untuk setiap kombinasi filter.
+
+**Alasan:** Filter tanggal dan properti membuat Looker menggabungkan beberapa baris bulanan. Rata-rata rasio bulanan memberi bobot sama pada bulan sepi dan ramai serta properti kecil dan besar, sehingga angkanya salah. Menghitung ulang dari kolom aditif memberi hasil yang sama dengan definisi di mart (#14) untuk rentang apa pun. Saat dashboard dibuat, YoY sempat tampil 111% karena bulan 2025 tidak punya data tahun lalu tetapi revenue-nya ikut dihitung; rumus dengan `CASE` memperbaikinya.
+

@@ -37,9 +37,32 @@ Mengikuti [panduan Neon untuk Looker Studio](https://neon.com/docs/connect/conne
 
 1. Unduh sertifikat CA [`isrgrootx1.pem`](https://letsencrypt.org/certs/isrgrootx1.pem).
 2. Looker Studio → **Create → Data source → PostgreSQL**.
-3. Host: host Neon (boleh yang `-pooler`), Port: kosong, Database: `resort`, Username: `looker_ro`, Password: password `looker_ro`.
+3. Host: host Neon **langsung (tanpa `-pooler`)**, Port: kosong, Database: `resort`, Username: `looker_ro`, Password: password `looker_ro`. Konfigurasi ini yang berhasil dipakai; password yang dipakai hanya huruf dan angka.
 4. Centang **Enable SSL**, jangan centang client authentication, unggah `isrgrootx1.pem` di **Server Certificate**.
-5. **Authenticate** → pilih tabel dari skema `marts` (mis. `mart_property_monthly`, `fact_daily_revenue`).
+5. **Authenticate** → pilih tabel dari skema `marts` (mis. `mart_property_monthly`). Bila tabel yang dibutuhkan tidak muncul di daftar, pakai **Custom Query**, mis. `select * from marts.mart_revenue_vs_target`.
+
+### A5. Dashboard
+
+Report **RESORT Report** (3 halaman, filter tanggal dan properti di setiap halaman):
+
+| Halaman | Sumber | Isi |
+|---|---|---|
+| Overview | `mart_property_monthly` | Revenue, Occupancy, ADR, RevPAR, Rating, Direct Share (vs tahun lalu); revenue & occupancy bulanan; revenue per properti; tabel scorecard properti |
+| Guests & Channels | `mart_property_monthly` | Rating, Cleanliness, Low Rating Share, Cancellation, Commission % Revenue, Direct Share; rating vs low-rating share bulanan; direct share per properti |
+| Revenue vs Target | `mart_revenue_vs_target` (Custom Query) | Aktual vs target to-date, achievement, gap, occupancy vs target; per bulan dan per properti |
+
+Aturan calculated field (lihat keputusan #18):
+
+- Rasio dihitung ulang dari kolom aditif: `SUM(pembilang) / SUM(penyebut)`, mis. `Occupancy = SUM(rooms_sold) / SUM(rooms_available)`. Jangan pakai rata-rata kolom rasio di mart.
+- Rating dan skor review dibobot jumlah review: `SUM(avg_rating * reviews) / SUM(reviews)`.
+- `Revenue YoY` hanya membandingkan bulan yang punya data tahun lalu: `SUM(CASE WHEN total_revenue_last_year > 0 THEN total_revenue ELSE 0 END) / SUM(total_revenue_last_year) - 1`.
+- Untuk metrik yang lebih baik bila turun (Low Rating Share, Cancellation, Commission), warna perbandingan scorecard dibalik: naik merah, turun hijau.
+
+Batasan yang perlu diketahui pembaca dashboard:
+
+- Grain mart bulanan, jadi perbandingan tahun lalu pada bulan berjalan memakai bulan penuh tahun lalu; YoY bulan berjalan tampak lebih rendah.
+- *Avg Occupancy* di halaman Revenue vs Target adalah rata-rata sederhana antar baris, bukan dibobot kamar.
+- Semua uang dalam USD.
 
 ## B. Operasi harian
 
@@ -79,5 +102,6 @@ cd dbt && dbt build --profiles-dir .
 
 - **Jadwal berhenti sendiri:** GitHub menonaktifkan workflow terjadwal di repo public yang tidak ada aktivitas commit selama 60 hari. Bila itu terjadi: **Actions → Daily pipeline → Enable workflow**.
 - **Batas simulasi:** dunia simulasi berakhir 31 Des 2027; generator menolak tanggal setelah **30 Jun 2027**. Sebelum itu, perpanjang `HORIZON` di `ingestion/config.py`.
+- **Dashboard error *"The connection service is temporarily overloaded"*:** biasanya sementara (compute Neon baru bangun). Muat ulang halaman; bila sering, aktifkan cache *data freshness* di data source.
 - **Ganti password:** ubah di Neon, lalu perbarui secret `NEON_PASSWORD` (pipeline) atau kredensial data source Looker Studio (`looker_ro`).
 - **Lokal:** `make up`, `make pipeline`, `make ci`; lihat README.

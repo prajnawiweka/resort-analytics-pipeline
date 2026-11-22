@@ -4,7 +4,7 @@
 
 Pipeline analitik end-to-end untuk **Tropical Haven Resort Group** (5 resort di Bali, data dummy): data harian dari beberapa sistem sumber dimuat ke PostgreSQL dengan Python, diolah dan dites dengan dbt, dijalankan otomatis oleh GitHub Actions, lalu ditampilkan di Looker Studio.
 
-> **Status:** M4 Automation siap: workflow harian, catch-up otomatis, dan cek kesegaran data sudah dites lokal. Menunggu database Neon untuk run pertama. Lihat [Roadmap](#roadmap).
+> **Status:** Pipeline harian berjalan di Neon dan dashboard Looker Studio (3 halaman) sudah membaca `marts`. Sisa: dokumentasi final. Lihat [Roadmap](#roadmap).
 
 ## Masalah yang diselesaikan
 
@@ -26,7 +26,7 @@ Sistem sumber        Ingestion          PostgreSQL (Neon)                  BI
 | `staging` | Tipe data rapi, nilai seragam, kode sumber dipetakan ke kunci bersama | dbt |
 | `marts` | Star schema (fact & dimension) dan KPI untuk dashboard | dbt |
 
-Alasan setiap pilihan teknologi ada di [docs/decisions.md](docs/decisions.md). Setup Neon, operasi harian, dan penanganan gagal ada di [docs/runbook.md](docs/runbook.md).
+Alasan setiap pilihan teknologi ada di [docs/decisions.md](docs/decisions.md). Setup Neon, koneksi dan isi dashboard, operasi harian, dan penanganan gagal ada di [docs/runbook.md](docs/runbook.md).
 
 ## Model data (skema `marts`)
 
@@ -103,8 +103,8 @@ docs/                 Catatan keputusan, data dictionary, runbook
 | M1 Ingestion | Generator multi-sumber, loader incremental, `load_log` | Selesai |
 | M2 Modeling | Seed master data, model dbt staging dan marts, revenue vs target | Selesai |
 | M3 Testing | Tes rekonsiliasi dan aturan bisnis lanjutan | Selesai |
-| M4 Automation | Pipeline harian ke Neon | Siap; menunggu setup Neon |
-| M5 Dashboard | Salinan dashboard Looker Studio membaca marts | |
+| M4 Automation | Pipeline harian ke Neon | Selesai |
+| M5 Dashboard | Dashboard Looker Studio membaca marts: Overview, Guests & Channels, Revenue vs Target | Selesai |
 | M6 Dokumentasi | README final, data dictionary, runbook, insight | Sebagian: runbook dan insight selesai |
 
 ## Data
