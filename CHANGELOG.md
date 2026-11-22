@@ -7,6 +7,8 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/). Ve
 ### Ditambahkan (M5 Dashboard)
 - Dashboard Looker Studio *RESORT Report* membaca Neon lewat `looker_ro`: halaman Overview, Guests & Channels, dan Revenue vs Target.
 - `docs/runbook.md` A5: isi tiap halaman, rumus calculated field, batasan dashboard; keputusan #18.
+- `docs/data_dictionary.md`: grain, kolom, dan kolom aditif setiap tabel `marts`.
+- README: bagian Dashboard.
 
 ### Diubah
 - Runbook A4: host Neon langsung (tanpa `-pooler`) dan Custom Query untuk tabel yang tidak muncul di daftar.
