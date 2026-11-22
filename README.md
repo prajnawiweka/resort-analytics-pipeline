@@ -4,6 +4,8 @@
 
 Pipeline analitik end-to-end untuk **Tropical Haven Resort Group** (5 resort di Bali, data dummy): data harian dari beberapa sistem sumber dimuat ke PostgreSQL dengan Python, diolah dan dites dengan dbt, dijalankan otomatis oleh GitHub Actions, lalu ditampilkan di Looker Studio.
 
+**[Buka dashboard →](https://datastudio.google.com/reporting/429dfb68-2d47-4d4b-8280-353314622991)**
+
 > **Status:** Selesai (M0–M6). Pipeline berjalan otomatis setiap pagi ke Neon, dashboard Looker Studio 3 halaman membaca `marts`. Lihat [Roadmap](#roadmap).
 
 ## Masalah yang diselesaikan
@@ -68,7 +70,7 @@ Lapisan dbt: `staging` (bersihkan, ketik, pilih versi terbaru) → `intermediate
 
 ## Dashboard
 
-Looker Studio membaca skema `marts` lewat role `looker_ro` (hanya baca). Tiga halaman, masing-masing dengan filter tanggal dan properti:
+[Dashboard publik](https://datastudio.google.com/reporting/429dfb68-2d47-4d4b-8280-353314622991) di Looker Studio membaca skema `marts` lewat role `looker_ro` (hanya baca). Tiga halaman, masing-masing dengan filter tanggal dan properti:
 
 | Halaman | Pertanyaan yang dijawab |
 |---|---|

@@ -5,7 +5,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/). Ve
 ## [1.0.0] - 2026-11-22 · M5 Dashboard dan M6 Dokumentasi
 
 ### Diubah (M6)
-- README final: ringkasan project, status selesai, struktur `docs/`, Power BI ditandai opsional dan belum dikerjakan.
+- README final: link dashboard publik, ringkasan project, status selesai, struktur `docs/`, Power BI ditandai opsional dan belum dikerjakan.
 - Runbook: *data freshness* Looker Studio 1 jam (dari default 12 jam).
 
 ### Ditambahkan (M5 Dashboard)
