@@ -9,6 +9,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/). Ve
 - `docs/runbook.md` A5: isi tiap halaman, rumus calculated field, batasan dashboard; keputusan #18.
 - `docs/data_dictionary.md`: grain, kolom, dan kolom aditif setiap tabel `marts`.
 - README: bagian Dashboard.
+- `mart_property_monthly.detailed_reviews`: jumlah review dengan skor rinci, bobot yang benar untuk cleanliness dan service.
 
 ### Diubah
 - Runbook A4: host Neon langsung (tanpa `-pooler`) dan Custom Query untuk tabel yang tidak muncul di daftar.

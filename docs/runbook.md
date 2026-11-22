@@ -54,7 +54,7 @@ Report **RESORT Report** (3 halaman, filter tanggal dan properti di setiap halam
 Aturan calculated field (lihat keputusan #18):
 
 - Rasio dihitung ulang dari kolom aditif: `SUM(pembilang) / SUM(penyebut)`, mis. `Occupancy = SUM(rooms_sold) / SUM(rooms_available)`. Jangan pakai rata-rata kolom rasio di mart.
-- Rating dan skor review dibobot jumlah review: `SUM(avg_rating * reviews) / SUM(reviews)`.
+- Rating dibobot jumlah review: `SUM(avg_rating * reviews) / SUM(reviews)`. Cleanliness dan service dibobot review yang punya skor rinci: `SUM(avg_cleanliness * detailed_reviews) / SUM(detailed_reviews)`.
 - `Revenue YoY` hanya membandingkan bulan yang punya data tahun lalu: `SUM(CASE WHEN total_revenue_last_year > 0 THEN total_revenue ELSE 0 END) / SUM(total_revenue_last_year) - 1`.
 - Untuk metrik yang lebih baik bila turun (Low Rating Share, Cancellation, Commission), warna perbandingan scorecard dibalik: naik merah, turun hijau.
 

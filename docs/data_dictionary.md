@@ -119,7 +119,9 @@ Basis bulan berbeda per kelompok: KPI menginap memakai tanggal menginap, KPI boo
 | `avg_lead_time_days` | Rata-rata lead time |
 | `commission_cost` | Total komisi. Aditif |
 | `reviews` | Jumlah review. Aditif |
-| `avg_rating`, `avg_cleanliness`, `avg_service` | Rata-rata skor review (1–5); gabungkan dengan bobot `reviews`. `avg_cleanliness` dan `avg_service` hanya dari platform yang mengirim skor rinci, sedangkan bobot `reviews` menghitung semua review, jadi gabungan lintas bulan untuk keduanya adalah pendekatan |
+| `detailed_reviews` | Review yang punya skor rinci (Booking.com, Post-stay Survey). Aditif |
+| `avg_rating` | Rata-rata `overall_rating`; gabungkan dengan bobot `reviews` |
+| `avg_cleanliness`, `avg_service` | Rata-rata skor rinci; gabungkan dengan bobot `detailed_reviews` (Google Reviews dan TripAdvisor tidak mengirim skor ini) |
 | `low_rating_share` | Review dengan rating < 4 / semua review |
 | `total_revenue_last_year` | `total_revenue` bulan yang sama tahun lalu; kosong untuk semua bulan 2025 (night audit pertama 1 Jan 2025) |
 | `total_revenue_yoy` | `total_revenue / total_revenue_last_year - 1` |
